@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import asyncio
 from json import loads, dumps
@@ -265,4 +266,11 @@ async def run_job(request):
 
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=8000, debug=True)
+    if len(sys.argv) < 2:
+        print(f"Usage: python3 {sys.argv[0]} (dev|prod)")
+        exit(-1)
+
+    if sys.argv[1] == "dev":
+        app.run(host="127.0.0.1", port=8000, debug=True)
+    else:
+        app.run(host="0.0.0.0", port=8000, debug=False)
