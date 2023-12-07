@@ -204,7 +204,9 @@ async def run_job(request):
             continue
         if param.get("val") is None:
             continue
-        str.replace(shell_src, "$" + param.get("name"), str(param.get("val")))
+        shell_src = str.replace(
+            shell_src, "$" + param.get("name"), str(param.get("val"))
+        )
 
     shell_exec_idx = 1
     job_next_exec_idx_path = os.path.join(job_dir, "next_exec_idx")
