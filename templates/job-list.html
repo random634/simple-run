@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block body_content %}
+{{ super() }}
+
+<lay-body class="simple-run-body-root">
+  <lay-layout>
+    <lay-side class="simple-run-side">
+      <lay-field title="执行列表">
+      </lay-field>
+      <div v-if="runList.length == 0">暂无</div>
+    </lay-side>
+    <lay-body class="simple-run-body">
+      <lay-table :columns="jobCols" :data-source="jobList" even>
+        <template v-slot:toolbar>
+          <lay-button size="sm" type="primary" @click="addJob()">添加任务</lay-button>
+        </template>
+        <template v-slot:operator="{ row }">
+          <lay-button size="sm" type="danger" @click="delJob(row.name)">删除</lay-button>
+          <lay-button size="sm" type="primary" @click="editJob(row.name)">编辑</lay-button>
+          <lay-button size="sm" type="primary" @click="runJob(row.name)">运行</lay-button>
+        </template>
+      </lay-table>
+    </lay-body>
+  </lay-layout>
+</lay-body>
+{% endblock %}
+
+{% block body_script %}
+<script>
+  const jobCols = [
+    {
+      title: "名称",
+      width: "80px",
+      key: "name"
+    },
+    {
+      title: "描述",
+      width: "200px",
+      key: "desc"
+    }, {
+      title: "操作",
+      width: "180px",
+      key: "operator",
+      customSlot: "operator", fixed: "right", ignoreExport: true
+    }
+  ]
+
+  const jobList = []
+
+  const runList = []
+
+  const App = {
+    data() {
+      return {
+        menuIdx: Vue.ref("0"),
+        jobCols: jobCols,
+        jobList: jobList,
+        runList: runList,
+      };
+    },
+    mounted() {
+      var self = this;
+      axios.post('/data/job_list', {})
+        .then(function (response) {
+          var rsp = response.data;
+          // console.log(rsp);
+          rsp.result.forEach(element => {
+            self.jobList.push(element);
+          });
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    },
+    methods: {
+      changeMenuIdx(idx) {
+        if (idx == 0) {
+          window.location.href = "/";
+        } else if (idx == 4) {
+          window.location.href = "/help";
+        }
+      },
+      addJob() {
+        window.location.href = "/job-edit/new";
+      },
+      delJob(name) {
+        var idx = this.jobList.findIndex((element) => {
+          return element.name == name;
+        });
+        if (idx >= 0) {
+          this.jobList.splice(idx, 1);
+        }
+      },
+      editJob(name) {
+        window.location.href = "/job-edit/" + name;
+      },
+      runJob(name) {
+        window.location.href = "/job-run/" + name;
+      }
+    },
+
+    delimiters: ['${', '}']
+  }
+  const app = Vue.createApp(App);
+  app.use(LayuiVue);
+  app.mount('#app');
+
+</script>
+{% endblock %}

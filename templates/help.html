@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block body_content %}
+{{ super() }}
+
+<lay-body class="simple-run-body-root">
+  <lay-layout>
+    <lay-side class="simple-run-side">
+      <lay-field title="侧边栏">
+      </lay-field>
+      <div>暂时无用</div>
+    </lay-side>
+
+    <lay-body class="simple-run-body">
+      This is a help page.
+    </lay-body>
+  </lay-layout>
+</lay-body>
+{% endblock %}
+
+
+{% block body_script %}
+<script>
+  const App = {
+    data() {
+      return {
+        menuIdx: Vue.ref("4"),
+      };
+    },
+    methods: {
+      changeMenuIdx(idx) {
+        if (idx == 0) {
+          window.location.href = "/";
+        } else if (idx == 4) {
+          window.location.href = "/help";
+        }
+      }
+    },
+    delimiters: ['${', '}']
+  }
+  const app = Vue.createApp(App);
+  app.use(LayuiVue);
+  app.mount('#app');
+
+</script>
+{% endblock %}

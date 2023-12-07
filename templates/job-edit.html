@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block body_content %}
+{{ super() }}
+
+<lay-body class="simple-run-body-root">
+  <lay-layout>
+    <lay-side class="simple-run-side">
+      <lay-field title="侧边栏">
+      </lay-field>
+      <div>暂时无用</div>
+    </lay-side>
+
+    <lay-body class="simple-run-body">
+      <lay-form v-model="jobEdit" :pane="true">
+        <lay-form-item label="任务名称">
+          <lay-input v-model="jobEdit.name"></lay-input>
+        </lay-form-item>
+        <lay-form-item label="任务描述">
+          <lay-input v-model="jobEdit.desc"></lay-input>
+        </lay-form-item>
+      </lay-form>
+
+      <!--  <lay-empty v-if="jobEdit.params.length == 0" description="请添加参数"></lay-empty>-->
+
+      <ul>
+        <li v-for="(param, idx) in jobEdit.params">
+          <lay-field :title="'参数' + (idx + 1) + ' (' +paramTypes[param.type] + ')'">
+            <lay-form v-model="param">
+              <lay-form-item label="名称（必填）">
+                <lay-input v-model="param.name"></lay-input>
+              </lay-form-item>
+              <lay-form-item label="描述">
+                <lay-textarea v-model="param.desc"></lay-textarea>
+              </lay-form-item>
+              <lay-form-item label="默认值">
+                <lay-input v-model="param.valDefault"></lay-input>
+              </lay-form-item>
+              <lay-form-item v-if="param.type == 2" label="可选值">
+                <lay-textarea v-model="param.valList"></lay-textarea>
+              </lay-form-item>
+              <lay-form-item style="text-align: right">
+                <lay-button type="danger" @click="delParam(idx)">删除</lay-button>
+              </lay-form-item>
+
+            </lay-form>
+          </lay-field>
+        </li>
+      </ul>
+
+      <lay-form v-model="jobEdit" :pane="true">
+        <lay-form-item style="text-align: center;">
+          <lay-dropdown updateAtScroll>
+            <lay-button type="primary">添加参数</lay-button>
+            <template #content>
+              <lay-dropdown-menu>
+                <lay-dropdown-menu-item @click="addParam(0)">字符串参数</lay-dropdown-menu-item>
+                <lay-dropdown-menu-item @click="addParam(1)">布尔值参数</lay-dropdown-menu-item>
+                <lay-dropdown-menu-item @click="addParam(2)">选择参数</lay-dropdown-menu-item>
+              </lay-dropdown-menu>
+            </template>
+          </lay-dropdown>
+        </lay-form-item>
+        <lay-form-item label="任务内容">
+          <lay-textarea v-model="jobEdit.content"></lay-textarea>
+        </lay-form-item>
+        <lay-form-item style="text-align: center;">
+          <lay-button type="primary" @click="saveJob()">保存任务</lay-button>
+        </lay-form-item>
+      </lay-form>
+    </lay-body>
+  </lay-layout>
+</lay-body>
+{% endblock %}
+
+
+{% block body_script %}
+<script>
+  const jobName = "{{ jobName }}";
+
+  const App = {
+    data() {
+      return {
+        menuIdx: Vue.ref("1"),
+        menuEidt: Vue.ref("1"),
+        paramTypes: {
+          "0": "字符串参数",
+          "1": "布尔值参数",
+          "2": "选择参数",
+        },
+        jobEdit: {
+          name: jobName,
+          desc: "",
+          params: [
+          ],
+          content: ""
+        }
+      };
+    },
+    mounted() {
+      var self = this;
+      axios.post('/data/job_info', { name: jobName })
+        .then(function (response) {
+          var rsp = response.data;
+          // console.log(rsp);
+          if (rsp.code != 0) {
+            LayuiVue.layer.msg("请求失败: " + rsp.message, { icon: 2, time: 1000 })
+          } else {
+            self.jobEdit.name = rsp.result.name;
+            self.jobEdit.desc = rsp.result.desc;
+            self.jobEdit.params = rsp.result.params;
+            self.jobEdit.content = rsp.result.content;
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    },
+    methods: {
+      changeMenuIdx(idx) {
+        if (idx == 0) {
+          window.location.href = "/";
+        } else if (idx == 4) {
+          window.location.href = "/help";
+        }
+      },
+      addParam(type) {
+        this.jobEdit.params.push({
+          type: type
+        });
+      },
+      delParam(idx) {
+        this.jobEdit.params.splice(idx, 1);
+      },
+      saveJob() {
+        var self = this;
+        var i = 0;
+        var paramValid = true;
+        for (i = 0; i < this.jobEdit.params.length; i++) {
+          var param = this.jobEdit.params[i];
+          if (param.name == null || param.name == "") {
+            paramValid = false;
+            break;
+          }
+        }
+
+        if (!paramValid) {
+          LayuiVue.layer.msg("参数名不能为空！", { icon: 2, time: 1000 });
+          return;
+        }
+
+        axios.post('/update/job_info', this.jobEdit)
+          .then(function (response) {
+            var rsp = response.data;
+            // console.log(rsp);
+            if (rsp.code != 0) {
+              LayuiVue.layer.notifiy({
+                title: "Error",
+                content: "保存失败: " + rsp.message,
+                icon: 2
+              })
+            } else {
+              LayuiVue.layer.notifiy({
+                title: "Success",
+                content: "保存成功",
+                icon: 1
+              })
+              self.jobEdit.name = rsp.result.name;
+              self.jobEdit.desc = rsp.result.desc;
+              self.jobEdit.params = rsp.result.params;
+              self.jobEdit.content = rsp.result.content;
+            }
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+      }
+    },
+    delimiters: ['${', '}']
+  }
+  const app = Vue.createApp(App);
+  app.use(LayuiVue);
+  app.mount('#app');
+
+</script>
+{% endblock %}

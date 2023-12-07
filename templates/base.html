@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>SimpleRun</title>
+  <!-- 引入 layui-vue style -->
+  <link rel="stylesheet" href="/statics/css/layui-vue-2.12.0.css" />
+  <!-- 引入 自定义 style -->
+  <link rel="stylesheet" href="/statics/css/simple-run.css" />
+  <!-- 引入 vue -->
+  <script src="/statics/js/vue.global.3.3.9.js"></script>
+  <!-- 引入 layui-vue -->
+  <script src="/statics/js/layui-vue-2.12.0.js"></script>
+  <!-- 引入 axios -->
+  <script src="/statics/js/axios-1.6.2.js"></script>
+</head>
+
+<body>
+  <div id="app">
+    <lay-layout class="simple-run">
+      {% include "common/header.html" %}
+
+      {% block body_content %}
+      {% endblock %}
+
+      {% include "common/footer.html" %}
+    </lay-layout>
+  </div>
+
+  {% block body_script %}
+  {% endblock %}
+</body>
+
+</html>

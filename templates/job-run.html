@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block body_content %}
+{{ super() }}
+
+<lay-body class="simple-run-body-root">
+  <lay-layout>
+    <lay-side class="simple-run-side">
+      <lay-field title="执行记录">
+      </lay-field>
+      <div v-if="logList.length == 0">暂无</div>
+      <ul>
+        <li v-for="(log, idx) in logList">
+          <lay-panel class="job-log-item">
+            <label class="job-log-item-left">#${log.log_idx}</label>
+            <lay-button class="job-log-item-right" type="primary" @click="showLog(log.log_idx)">查看</lay-button>
+          </lay-panel>
+        </li>
+      </ul>
+    </lay-side>
+
+    <lay-body class="simple-run-body">
+      <ul>
+        <li>
+          <div class="job-name">任务 ${jobRun.name}</div>
+          <div class="job-desc">${jobRun.desc}</div>
+        </li>
+        <li v-for="(param, idx) in jobRun.params">
+          <template v-if="param.type == 0">
+            <lay-panel>
+              <div class="job-param-name">参数 ${param.name}</div>
+              <div class="job-param-desc">${param.desc}</div>
+              <lay-input v-if="param.type == 0" v-model="param.val"></lay-input>
+            </lay-panel>
+          </template>
+          <template v-if="param.type == 1">
+            <lay-panel>
+              <div class="job-param-name">参数 ${param.name}</div>
+              <div class="job-param-desc">${param.desc}</div>
+              <lay-checkbox skin="primary" v-model="param.val" label="True/False"></lay-checkbox>
+            </lay-panel>
+          </template>
+          <template v-if="param.type == 2">
+            <lay-panel>
+              <div class="job-param-name">参数 ${param.name}</div>
+              <div class="job-param-desc">${param.desc}</div>
+              <lay-select v-model="param.val">
+                <lay-select-option v-for="(val, idx) in param.valList" :value="val" :label="val"></lay-select-option>
+              </lay-select>
+            </lay-panel>
+          </template>
+        </li>
+        <li>
+          <lay-button type="primary" @click="runJob()">运行</lay-button>
+        </li>
+      </ul>
+
+    </lay-body>
+  </lay-layout>
+</lay-body>
+
+{% endblock %}
+
+
+{% block body_script %}
+<script>
+  const jobName = "{{ jobName }}";
+
+  const logList = [];
+
+  const App = {
+    data() {
+      return {
+        menuIdx: Vue.ref("2"),
+        jobRun: {
+          name: jobName,
+          desc: "",
+          params: [
+          ],
+          content: ""
+        },
+        logList: logList
+      };
+    },
+    mounted() {
+      var self = this;
+      axios.post('/data/job_info', { name: jobName })
+        .then(function (response) {
+          var rsp = response.data;
+          // console.log(rsp);
+          if (rsp.code != 0) {
+            LayuiVue.layer.msg("请求失败: " + rsp.message, { icon: 2, time: 1000 })
+          } else {
+            var params = rsp.result.params;
+            for (let i = 0; i < params.length; i++) {
+              var param = params[i];
+              if (param.type == 2) {
+                param.valList = ("" + param.valList).split("\n");
+              }
+              param.val = param.valDefault;
+            }
+
+            self.jobRun.name = rsp.result.name;
+            self.jobRun.desc = rsp.result.desc;
+            self.jobRun.params = rsp.result.params;
+            self.jobRun.content = rsp.result.content;
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+
+      axios.post('/data/job_log_list', { name: jobName })
+        .then(function (response) {
+          var rsp = response.data;
+          // console.log(rsp);
+          if (rsp.code != 0) {
+            LayuiVue.layer.msg("请求失败: " + rsp.message, { icon: 2, time: 1000 })
+          } else {
+            var logs = rsp.result.logs;
+            self.logList = logs;
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    },
+    methods: {
+      changeMenuIdx(idx) {
+        if (idx == 0) {
+          window.location.href = "/";
+        } else if (idx == 4) {
+          window.location.href = "/help";
+        }
+      },
+      runJob() {
+        var runParam = {
+          name: this.jobRun.name,
+          params: []
+        };
+        for (let i = 0; i < this.jobRun.params.length; i++) {
+          var param = this.jobRun.params[i];
+          runParam.params.push({
+            name: param.name,
+            val: param.val
+          });
+        }
+
+        console.log(JSON.stringify(runParam, null, 2));
+
+        var self = this;
+        axios.post('/run/job', runParam)
+          .then(function (response) {
+            var rsp = response.data;
+            // console.log(rsp);
+            if (rsp.code != 0) {
+              LayuiVue.layer.msg("执行失败: " + rsp.message, { icon: 2, time: 1000 });
+            } else {
+              LayuiVue.layer.msg("执行成功！", { icon: 1, time: 1000 });
+            }
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+
+        setTimeout(() => {
+          axios.post('/data/job_log_list', { name: jobName })
+            .then(function (response) {
+              var rsp = response.data;
+              // console.log(rsp);
+              if (rsp.code != 0) {
+                LayuiVue.layer.msg("请求失败: " + rsp.message, { icon: 2, time: 1000 });
+              } else {
+                var logs = rsp.result.logs;
+                self.logList = logs;
+              }
+            })
+            .catch(function (error) {
+              console.log(error);
+            });
+        }, 500);
+      },
+      showLog(idx) {
+        window.location.href = "/job-log/" + jobName + ":" + idx;
+      }
+    },
+    delimiters: ['${', '}']
+  }
+  const app = Vue.createApp(App);
+  app.use(LayuiVue);
+  app.mount('#app');
+
+</script>
+
+{% endblock %}

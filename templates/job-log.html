@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block body_content %}
+{{ super() }}
+
+<lay-body class="simple-run-body-root">
+  <lay-layout>
+    <lay-side class="simple-run-side">
+      <lay-field title="执行记录">
+      </lay-field>
+      <div v-if="logList.length == 0">暂无</div>
+      <ul>
+        <li v-for="(log, idx) in logList">
+          <lay-panel class="job-log-item">
+            <label class="job-log-item-left">#${log.log_idx}</label>
+            <lay-button class="job-log-item-right" type="primary" @click="showLog(log.log_idx)">查看</lay-button>
+          </lay-panel>
+        </li>
+      </ul>
+    </lay-side>
+
+    <lay-body class="simple-run-body">
+      <div class="job-name">任务 ${jobLog.name}</div>
+
+      <div>#${jobLog.logDetail.log_idx} 执行日志</div>
+      <lay-quote type="nm">
+        <pre>${jobLog.logDetail.log_content}</pre>
+      </lay-quote>
+    </lay-body>
+
+  </lay-layout>
+</lay-body>
+{% endblock %}
+
+{% block body_script %}
+<script>
+  const jobName = "{{ jobName }}";
+  const logIdx = "{{ logIdx }}";
+
+  const logList = [];
+
+  const App = {
+    data() {
+      return {
+        menuIdx: Vue.ref("3"),
+        jobLog: {
+          name: jobName,
+          logDetail: {}
+        },
+        logList: logList,
+      };
+    },
+    mounted() {
+      var self = this;
+      axios.post('/data/job_log_detail', { name: jobName, log_idx: logIdx })
+        .then(function (response) {
+          var rsp = response.data;
+          // console.log(rsp);
+          if (rsp.code != 0) {
+            LayuiVue.layer.msg("请求失败: " + rsp.message, { icon: 2, time: 1000 });
+          } else {
+            var logDetail = rsp.result;
+            self.jobLog.logDetail = logDetail;
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+
+      axios.post('/data/job_log_list', { name: jobName })
+        .then(function (response) {
+          var rsp = response.data;
+          // console.log(rsp);
+          if (rsp.code != 0) {
+            LayuiVue.layer.msg("请求失败: " + rsp.message, { icon: 2, time: 1000 });
+          } else {
+            var logs = rsp.result.logs;
+            self.logList = logs;
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    },
+    methods: {
+      changeMenuIdx(idx) {
+        if (idx == 0) {
+          window.location.href = "/";
+        } else if (idx == 4) {
+          window.location.href = "/help";
+        }
+      },
+      showLog(idx) {
+        window.location.href = "/job-log/" + jobName + ":" + idx;
+      }
+    },
+    delimiters: ['${', '}']
+  }
+  const app = Vue.createApp(App);
+  app.use(LayuiVue);
+  app.mount('#app');
+</script>
+{% endblock %}

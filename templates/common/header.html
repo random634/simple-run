@@ -1,0 +1,10 @@
+<lay-header class="simple-run-header">
+  <lay-logo>SimpleRun</lay-logo>
+  <lay-menu class="layui-layout-left" theme="light" inverted="true" v-model:selected-key="menuIdx" @change-selected-Key="changeMenuIdx">
+    <lay-menu-item id="0">任务列表</lay-menu-item>
+    <lay-menu-item id="1" v-if="menuIdx == 1">任务编辑</lay-menu-item>
+    <lay-menu-item id="2" v-if="menuIdx == 2">任务运行</lay-menu-item>
+    <lay-menu-item id="3" v-if="menuIdx == 3">任务日志</lay-menu-item>
+    <lay-menu-item id="4" v-if="menuIdx == 4">使用说明</lay-menu-item>
+  </lay-menu>
+</lay-header>

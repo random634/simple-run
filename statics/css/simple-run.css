@@ -1,0 +1,75 @@
+.layui-form-item .layui-input-inline {
+  width: 350px;
+}
+
+.simple-run-body-root {
+  margin-top: 65px;
+}
+
+.simple-run-header {
+  position: fixed;
+  z-index: 99;
+  width: 100%;
+  background-color: #fff;
+  padding-bottom: 65px;
+  border-bottom: 1px solid #eee;
+}
+
+.simple-run-footer {
+  position: fixed;
+  bottom: 0px;
+  z-index: 99;
+  width: 100%;
+  height: 50px;
+  font-size: 14px;
+  color: #999;
+  padding-left: 200px;
+  padding-top: calc((50px - 14px) / 2);
+  background-color: #fff;
+  text-align: center;
+}
+
+.simple-run-side {
+  position: fixed;
+  padding: 20px;
+  height: calc(100% - 65px - 50px);
+}
+
+.simple-run-body {
+  position: absolute;
+  padding: 20px;
+  left: 200px;
+  width: calc(100% - 200px);
+  height: calc(100% - 65px - 50px);
+}
+
+.job-name {
+  color: gray;
+  font-size: 15px;
+  margin-bottom: 5px;
+}
+
+.job-desc {
+  color: #aaa;
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.job-param-name {
+  color: gray;
+  font-size: 15px;
+  margin-bottom: 5px;
+}
+
+.job-param-desc {
+  color: #aaa;
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.job-log-item {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
