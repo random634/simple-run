@@ -6,7 +6,7 @@
 
 ### Client
 - vue
-- lay-vue
+- layui-vue
 
 ### Run
 ```
